@@ -3,6 +3,7 @@ import {Area} from "./area";
 
 export interface House {
   houseId: number,
+  houseName: string,
   streetAddress01: string,
   streetAddress02: string,
   city: string,

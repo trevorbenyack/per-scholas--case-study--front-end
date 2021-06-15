@@ -4,9 +4,6 @@
       <h4>Create a new house</h4>
       <p>Fill out the fields below to add a new house to your account.</p>
     </div>
-    <div class="col-lg-6 text-right d-flex flex-column justify-content-center">
-      <button type="button" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-0 mt-2">Save</button>
-    </div>
   </div>
   <div class="row mt-4">
     <div class="col-lg-4">
@@ -29,117 +26,84 @@
     </div>
     <div class="col-lg-8 mt-lg-0 mt-4">
       <div class="card">
-        <div class="card-body">
-          <h5 class="font-weight-bolder">Product Information</h5>
+        <div class="card-header">
+          <h5>House Information</h5>
+        </div>
+        <div class="card-body pt-0">
           <div class="row">
-            <div class="col-12 col-sm-6">
-              <label>Name</label>
-              <input class="form-control" type="text" value="Minimal Bar Stool" />
-            </div>
-            <div class="col-12 col-sm-6 mt-3 mt-sm-0">
-              <label>Weight</label>
-              <input class="form-control" type="number" value="2" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-3">
-              <label class="mt-4">Collection</label>
-              <input class="form-control" type="text" value="Summer" />
-            </div>
-            <div class="col-3">
-              <label class="mt-4">Price</label>
-              <input class="form-control" type="text" value="$90" />
-            </div>
-            <div class="col-3">
-              <label class="mt-4">Quantity</label>
-              <input class="form-control" type="number" value="50" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-sm-6">
-              <label class="mt-4">Description</label>
-              <p class="form-text text-muted text-xs ms-1 d-inline">
-                (optional)
-              </p>
-              <div id="edit-deschiption-edit" class="h-50">
-                Long sleeves black denim jacket with a twisted design. Contrast stitching. Button up closure. White arrow prints on the back.
+            <div class="col-6">
+              <label class="form-label" for="houseName">House Name</label>
+              <div class="input-group">
+                <input id="houseName" name="houseName" class="form-control" type="text" placeholder="House Name" required="required">
               </div>
             </div>
-            <div class="col-sm-6">
-              <label class="mt-4">Category</label>
-              <select class="form-control" name="choices-category" id="choices-category-edit">
-                <option value="Choice 1" selected="">Furniture</option>
-                <option value="Choice 2">Real Estate</option>
-                <option value="Choice 3">Electronics</option>
-                <option value="Choice 4">Clothing</option>
-                <option value="Choice 5">Others</option>
-              </select>
-              <label>Color</label>
-              <select class="form-control" name="choices-color" id="choices-color-edit">
-                <option value="Choice 1" selected="">Black</option>
-                <option value="Choice 2">White</option>
-                <option value="Choice 3">Blue</option>
-                <option value="Choice 4">Orange</option>
-                <option value="Choice 5">Green</option>
-              </select>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label class="form-label mt-4" for="streetAddress01">Address</label>
+              <div class="input-group">
+                <input id="address" name="streetAddress01" class="form-control" type="text" placeholder="Enter your address here" required="required">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">
+              <label class="form-label mt-4" for="streetAddress01">Street Address 1</label>
+              <div class="input-group">
+                <input id="streetAddress01" name="streetAddress01" class="form-control" type="text" placeholder="Street Address" required="required">
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label mt-4" for="streetAddress02">Street Address 2 (Optional)</label>
+              <div class="input-group">
+                <input id="streetAddress02" name="streetAddress02" class="form-control" type="text" placeholder="Apt No./Ste./Etc.">
+              </div>
+            </div>
+          </div>
+          <!-- City, State, Zip -->
+          <div class="row">
+            <div class="col-sm-6 col-7">
+              <label class="form-label mt-4" for="city">City</label>
+              <div class="input-group">
+                <input id="city" name="city" class="form-control" type="text" placeholder="City">
+              </div>
+            </div>
+            <div class="col-sm-2 col-2">
+              <label class="form-label mt-4" for="state">State</label>
+              <div class="input-group">
+                <input id="state" name="state" class="form-control" type="text" placeholder="State">
+              </div>
+            </div>
+            <div class="col-sm-4 col-3">
+              <label class="form-label mt-4" for="zipCode">Zip Code</label>
+              <div class="input-group">
+                <input id="zipCode" name="zipCode" class="form-control" type="text" placeholder="Zip Code">
+              </div>
+            </div>
+          </div>
+          <!-- Notes -->
+          <div class="row">
+            <div class="col">
+              <label class="form-label mt-4" for="streetAddress01">Notes</label>
+              <div class="input-group">
+                <input id="notes" name="notes" class="form-control" type="text" placeholder="Enter any notes about the house here" >
+              </div>
+            </div>
+          </div>
+          <!-- Areas -->
+          <div class="row">
+            <div class="col">
+              <label class="form-label mt-4" for="areas">House Areas</label>
+              <input class="form-control" id="areas" name="areas" type="text" value="Living Room, Kitchen, Office" placeholder="Enter the different areas of your house here." />
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="row mt-4">
-    <div class="col-sm-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="font-weight-bolder">Socials</h5>
-          <label>Shoppify Handle</label>
-          <input class="form-control" type="text" value="@soft" />
-          <label class="mt-4">Facebook Account</label>
-          <input class="form-control" type="text" value="https://" />
-          <label class="mt-4">Instagram Account</label>
-          <input class="form-control" type="text" value="https://" />
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-8 mt-sm-0 mt-4">
-      <div class="card">
-        <div class="card-body">
-          <div class="row">
-            <h5 class="font-weight-bolder">Pricing</h5>
-            <div class="col-3">
-              <label>Price</label>
-              <input class="form-control" type="number" value="99.00" />
-            </div>
-            <div class="col-4">
-              <label>Currency</label>
-              <select class="form-control" name="choices-sizes" id="choices-currency-edit">
-                <option value="Choice 1" selected="">USD</option>
-                <option value="Choice 2">EUR</option>
-                <option value="Choice 3">GBP</option>
-                <option value="Choice 4">CNY</option>
-                <option value="Choice 5">INR</option>
-                <option value="Choice 6">BTC</option>
-              </select>
-            </div>
-            <div class="col-5">
-              <label>SKU</label>
-              <input class="form-control" type="text" value="71283476591" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-12">
-              <label class="mt-4">Tags</label>
-              <select class="form-control" name="choices-tags" id="choices-tags-edit" placeholder="This is a placeholder" multiple>
-                <option value="Choice 1" selected>In Stock</option>
-                <option value="Choice 2">Out of Stock</option>
-                <option value="Choice 3">Sale</option>
-                <option value="Choice 4">Black Friday</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="row">
+    <div class="col text-right d-flex flex-column justify-content-center">
+      <button type="button" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-2 mt-2">Save</button>
     </div>
   </div>
 </div>
