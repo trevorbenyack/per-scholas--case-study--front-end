@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import {CoreModule} from "./core/core.module";
 import { CreateNewHouseComponent } from './modules/houses/create-new-house/create-new-house.component';
 import { DashboardComponent } from './modules/dashboard/dashboard/dashboard.component';
+import {GooglePlaceModule} from "ngx-google-places-autocomplete";
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { DashboardComponent } from './modules/dashboard/dashboard/dashboard.comp
   imports: [
     BrowserModule,
     AppRoutingModule,
-    CoreModule
+    CoreModule,
+    GooglePlaceModule
   ],
   providers: [],
   bootstrap: [AppComponent]
