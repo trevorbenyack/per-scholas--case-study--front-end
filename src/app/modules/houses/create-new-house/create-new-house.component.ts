@@ -3,6 +3,10 @@ import { Options } from 'ngx-google-places-autocomplete/objects/options/options'
 import { Address } from "ngx-google-places-autocomplete/objects/address";
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { House } from '../../../shared/models/house'
+import {ImageService} from "../../../shared/services/image.service";
+import {FileUploadService} from "../../../shared/services/file-upload.service";
+import {ImageFileObject} from "../../../shared/models/image-file-object";
+import {HttpEvent, HttpResponse} from "@angular/common/http";
 declare const Quill: any;
 declare const Choices: any;
 
@@ -12,6 +16,14 @@ declare const Choices: any;
   styleUrls: ['./create-new-house.component.css']
 })
 export class CreateNewHouseComponent implements OnInit {
+
+  choicesObj: typeof Choices; // used to get areas values from form
+
+  // image upload properties
+  profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadHouseImage";
+  imageUploadObj = {} as ImageFileObject;
+  changeImage = false;
+  imageError: string = "";
 
   // Google Maps Api Options
   // Had to import Options directly, per advice at:
@@ -25,11 +37,13 @@ export class CreateNewHouseComponent implements OnInit {
     }
   } as Options; // "as ..." tells TypeScript to type this object as the defined type instead of the default
 
-  choicesObj: typeof Choices;
+
 
   constructor(private elementRef: ElementRef,
               private renderer: Renderer2,
-              private formBuilder: FormBuilder) {
+              private formBuilder: FormBuilder,
+              private imageService: ImageService,
+              private fileUploadService: FileUploadService) {
   }
 
   ngOnInit(): void {
@@ -118,12 +132,50 @@ export class CreateNewHouseComponent implements OnInit {
         return;
       }
 
+      // ignore the red squiggly... this works
+      form.areas = this.choicesObj.getValue(true);
       console.log(form);
-      console.log(`areas are ${this.areas}`);
+  } // end onSubmit()
 
-      console.log(`choices values are ${this.choicesObj.getValue(true)}`);
+  // IMAGE UPLOAD METHODS
 
+  // executed when user chooses a new photo
+  onUploadedImage(image: ImageFileObject) {
+    // validate image
+    this.imageError = this.imageService.validateImage(image);
 
-}
+    // if image object is valid, assign it to local imageUploadObj
+    if (!this.imageError) {
+      this.imageUploadObj = image;
+    }
 
-}
+    // upload the file to server
+    this.fileUploadService.pushFileToStorage(this.imageUploadObj.file, this.profileImageUploadUrl)
+      .subscribe(event => this.handleEvent(event),
+        err => this.handleError(err));
+  }
+
+  handleEvent(event: HttpEvent<{}>) {
+    if (event instanceof HttpResponse) {
+      let body = event.body;
+      this.handleResponse(body);
+    }
+
+    // reset imageUploadObj
+    this.imageUploadObj = {} as ImageFileObject;
+  }
+
+  handleResponse(data: any) {
+    console.log(data);
+
+    // reset imageUploadObj
+    this.imageUploadObj = {} as ImageFileObject;
+
+  }
+
+  handleError(err: Error) {
+    console.error("Error is", err);
+    this.imageError = err.message;
+  }
+
+} // class

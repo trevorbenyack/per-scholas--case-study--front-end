@@ -8,7 +8,7 @@
   <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit(houseInfoFormGroup.value)">
     <div class="row mt-4">
       <div class="col-lg-4">
-        <app-image-picker></app-image-picker>
+        <app-image-picker (uploadedImageEvent)="onUploadedImage($event)"></app-image-picker>
       </div>
       <div class="col-lg-8 mt-lg-0 mt-4">
         <div class="card">

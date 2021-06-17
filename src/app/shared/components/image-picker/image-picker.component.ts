@@ -14,7 +14,7 @@ export class ImagePickerComponent implements OnInit {
   public altImage: string = "/assets/img/house-placeholder-image.png";
 
   // emits image to parent component
-  @Output() uploadedImageEmitter = new EventEmitter<ImageFileObject>();
+  @Output() uploadedImageEvent = new EventEmitter<ImageFileObject>();
 
   constructor(private imageService: ImageService,
               private elementRef: ElementRef,
@@ -32,7 +32,7 @@ export class ImagePickerComponent implements OnInit {
       const file = files[0]
       imageFileObject.file = file;
 
-      let emitter = this.uploadedImageEmitter;
+      let emitter = this.uploadedImageEvent;
 
       // .onload handler needs to be declared before use of readAsDataUrl(file) since
       // the FileReader api is asynchronous
