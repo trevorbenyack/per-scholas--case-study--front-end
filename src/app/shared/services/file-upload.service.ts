@@ -6,7 +6,7 @@ import {catchError} from "rxjs/operators";
 @Injectable({
   providedIn: 'root'
 })
-export class FileUploadServiceService {
+export class FileUploadService {
 
   constructor(private handler: HttpHandler) { }
 
@@ -17,7 +17,7 @@ export class FileUploadServiceService {
     const newRequest = new HttpRequest('POST', url, data);
 
     // .handle(newRequest) is the method that sends the request
-    return this.handler.handle(newRequest).pipe(catchError(FileUploadServiceService.handleError));
+    return this.handler.handle(newRequest).pipe(catchError(FileUploadService.handleError));
   }
 
   private static handleError(error: HttpErrorResponse) {

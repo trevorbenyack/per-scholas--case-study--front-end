@@ -1,6 +1,8 @@
-import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2} from '@angular/core';
 import { Options } from 'ngx-google-places-autocomplete/objects/options/options';
-import {Address} from "ngx-google-places-autocomplete/objects/address";
+import { Address } from "ngx-google-places-autocomplete/objects/address";
+import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { House } from '../../../shared/models/house'
 declare const Quill: any;
 declare const Choices: any;
 
@@ -22,54 +24,56 @@ export class CreateNewHouseComponent implements OnInit {
       country: "US"
     }
   } as Options; // "as ..." tells TypeScript to type this object as the defined type instead of the default
-  streetAddress01: string = "";
-  streetAddress02: string = "";
-  city: string = "";
-  state: string = "";
-  zipCode: string = "";
 
-  constructor(private elementRef: ElementRef, private renderer: Renderer2) {
+  choicesObj: typeof Choices;
+
+  constructor(private elementRef: ElementRef,
+              private renderer: Renderer2,
+              private formBuilder: FormBuilder) {
   }
 
   ngOnInit(): void {
+
+    // initializes the "Areas" Choices plugin
     if (document.getElementById('areas')) {
-      var skills = document.getElementById('areas');
-      const example = new Choices(skills, {
+      const areas = document.getElementById('areas');
+      const areasChoicesObj = new Choices(areas, {
         delimiter: ',',
         editItems: true,
         maxItemCount: 10,
         removeItemButton: true,
         addItems: true
       });
+      this.choicesObj = areasChoicesObj;
     }
   } // end ngOnInit
 
+  // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {
-    this.streetAddress01 = "";
-    console.log("inside handleAddressChange()");
-    console.log(address.address_components);
+
+    let street_number: string = "";
 
     for(let address_component of address.address_components) {
       const componentType = address_component.types[0];
       switch (componentType) {
         case "street_number": {
-          this.streetAddress01 += address_component.long_name
+          street_number = address_component.long_name;
           break;
         }
         case "route": {
-          this.streetAddress01 += " " + address_component.short_name;
+          this.streetAddress01?.setValue(`${street_number} ${address_component.short_name}`);
           break;
         }
         case "locality": {
-          this.city = address_component.long_name;
+          this.city?.setValue(address_component.long_name);
           break;
         }
         case "administrative_area_level_1": {
-          this.state = address_component.short_name;
+          this.state?.setValue(address_component.short_name);
           break;
         }
         case "postal_code": {
-          this.zipCode = address_component.long_name;
+          this.zipCode?.setValue(address_component.long_name);
           break;
         }
       } // end switch statement
@@ -78,5 +82,48 @@ export class CreateNewHouseComponent implements OnInit {
     stAdd02Element.focus();
 
   } // end handleAddressChange()
+
+  houseInfoFormGroup: FormGroup = this.formBuilder.group( {
+    houseName: ['',[Validators.required, Validators.minLength(2)]],
+    streetAddress01: ['', [Validators.required]],
+    streetAddress02: [''],
+    city: ['', [Validators.required]],
+    state: ['', [Validators.required]],
+    zipCode: ['', [Validators.required]],
+    notes: [''],
+    pictureUrl: [''],
+    areas: ['']
+  });
+
+  // // Typescript Form getter methods
+  get houseName() { return this.houseInfoFormGroup.get('houseName'); }
+  get streetAddress01() { return this.houseInfoFormGroup.get('streetAddress01'); }
+  get streetAddress02() { return this.houseInfoFormGroup.get('streetAddress02'); }
+  get city() { return this.houseInfoFormGroup.get('city'); }
+  get state() { return this.houseInfoFormGroup.get('state'); }
+  get zipCode() { return this.houseInfoFormGroup.get('zipCode'); }
+  get notes() { return this.houseInfoFormGroup.get('notes'); }
+  get pictureUrl() { return this.houseInfoFormGroup.get('pictureUrl'); }
+  get areas() { return this.houseInfoFormGroup.get('areas'); }
+
+  onSubmit(form: House): void {
+      console.log('populating a new house object');
+
+      // if there are invalid values in the fields, mark all the fields as touched
+      // (will show alerts for all invalid fields) and then exit the function
+      // i.e. don't do anything...
+      if (this.houseInfoFormGroup.invalid) {
+        // .markAllAsTouched() => touching all fields triggers the display of the error messages
+        this.houseInfoFormGroup.markAllAsTouched();
+        return;
+      }
+
+      console.log(form);
+      console.log(`areas are ${this.areas}`);
+
+      console.log(`choices values are ${this.choicesObj.getValue(true)}`);
+
+
+}
 
 }

@@ -1,0 +1,18 @@
+ <div class="card h-100">
+    <div class="card-body">
+      <h5 class="font-weight-bolder">Picture</h5>
+      <div class="row">
+        <div class="col-12">
+          <img class="w-100 border-radius-lg shadow-lg mt-4" *ngIf="image" [attr.src]="image" alt="product_image">
+          <img class="w-100 border-radius-lg shadow-lg mt-4" *ngIf="!image" [attr.src]="altImage" alt="product_image">
+        </div>
+        <div class="col-12 mt-4">
+          <div class="d-flex">
+            <button class="btn bg-gradient-primary btn-sm mb-0 me-2" type="button" name="edit" id="edit" (click)="clickFileInput()">Edit</button>
+            <button class="btn btn-outline-dark btn-sm mb-0" type="button" name="remove" id="remove" (click)="removeImage()">Remove</button>
+            <input type="file" id="image-upload" (change)="fileChange(fileInput.files)" #fileInput style="visibility: hidden"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

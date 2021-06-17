@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
-import {UploadedImage} from "../models/uploaded-image";
+import {ImageFileObject} from "../models/image-file-object";
 
 const maxUploadSize: number = 5242880;
 const allowedExtensions: string[] = ['png', 'jpg', 'jpeg'];
 
+
+/* This service includes several convenience methods for validating images*/
+
 @Injectable({
   providedIn: 'root'
 })
-export class ImageServiceService {
+export class ImageService {
 
   constructor() { }
 
-  validateImage(image: UploadedImage): string {
+  validateImage(image: ImageFileObject): string {
     let imageError: string = "";
     console.log("image file name is " + image.file.name);
 
@@ -24,7 +27,7 @@ export class ImageServiceService {
     return imageError;
   }
 
-  validExtension(image: UploadedImage): boolean {
+  validExtension(image: ImageFileObject): boolean {
     let valid: boolean = false;
 
     for (let i = 0; i < allowedExtensions.length; i++) {

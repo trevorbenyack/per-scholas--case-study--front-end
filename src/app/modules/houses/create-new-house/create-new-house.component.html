@@ -5,117 +5,109 @@
       <p>Fill out the fields below to add a new house to your account.</p>
     </div>
   </div>
-  <div class="row mt-4">
-    <div class="col-lg-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="font-weight-bolder">Picture</h5>
-          <div class="row">
-            <div class="col-12">
-              <img class="w-100 border-radius-lg shadow-lg mt-4" src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="product_image">
-            </div>
-            <div class="col-12 mt-4">
-              <div class="d-flex">
-                <button class="btn bg-gradient-primary btn-sm mb-0 me-2" type="button" name="button">Edit</button>
-                <button class="btn btn-outline-dark btn-sm mb-0" type="button" name="button">Remove</button>
-              </div>
-            </div>
-          </div>
-        </div>
+  <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit(houseInfoFormGroup.value)">
+    <div class="row mt-4">
+      <div class="col-lg-4">
+        <app-image-picker></app-image-picker>
       </div>
-    </div>
-    <div class="col-lg-8 mt-lg-0 mt-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="font-weight-bolder">House Information</h5>
-          <div class="row">
-            <div class="col-6">
-              <label class="form-label" for="houseName">House Name</label>
-              <div class="input-group">
-                <input id="houseName" name="houseName" class="form-control" type="text" placeholder="House Name" required="required">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <form autocomplete="off">
-              <div class="col">
-                <label class="form-label mt-4" for="searchAddress">Address</label>
+      <div class="col-lg-8 mt-lg-0 mt-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="font-weight-bolder">House Information</h5>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label" for="houseName">House Name</label>
                 <div class="input-group">
-                  <!-- Turning off autocomplete article -->
-                  <!--- https://bytes.grubhub.com/disabling-safari-autofill-for-a-single-line-address-input-b83137b5b1c7 -->
-                  <input ngx-google-places-autocomplete
-                         [options]="options"
-                         (onAddressChange)="handleAddressChange($event)"
-                         id="searchAddress"
-                         name="searchAddress"
-                         class="form-control"
-                         type="search"
-                         placeholder="Enter your address here"
-                         required="required"
-                         autocomplete="off">
+                  <input id="houseName" formControlName="houseName" class="form-control" type="text" placeholder="House Name">
                 </div>
               </div>
-            </form>
+            </div>
+            <div class="row">
+              <form autocomplete="off">
+                <div class="col">
+                  <label class="form-label mt-4" for="searchAddress">Address</label>
+                  <div class="input-group">
+                    <!-- Turning off autocomplete article -->
+                    <!--- https://bytes.grubhub.com/disabling-safari-autofill-for-a-single-line-address-input-b83137b5b1c7 -->
+                    <input ngx-google-places-autocomplete
+                           [options]="options"
+                           (onAddressChange)="handleAddressChange($event)"
+                           id="searchAddress"
+                           name="searchAddress"
+                           class="form-control"
+                           type="search"
+                           placeholder="Enter your address here"
+                           required="required"
+                           autocomplete="off">
+                  </div>
+                </div>
+              </form>
 
-          </div>
-          <div class="row">
-            <div class="col-6">
-              <label class="form-label mt-4" for="streetAddress01">Street Address 1</label>
-              <div class="input-group">
-                <input id="streetAddress01" name="streetAddress01" class="form-control" type="text" [value]="streetAddress01" placeholder="Street Address" disabled>
+            </div>
+            <div class="row">
+              <fieldset class="col-6" disabled>
+                <label class="form-label mt-4" for="streetAddress01">Street Address 1</label>
+                <div class="input-group">
+                  <input id="streetAddress01" formControlName="streetAddress01" class="form-control" type="text"
+                          placeholder="Street Address">
+                </div>
+              </fieldset>
+              <div class="col-6">
+                <label class="form-label mt-4" for="streetAddress02">Street Address 2 (Optional)</label>
+                <div class="input-group">
+                  <input id="streetAddress02" formControlName="streetAddress02" class="form-control" type="text"
+                         placeholder="Apt No./Ste./Etc.">
+                </div>
               </div>
             </div>
-            <div class="col-6">
-              <label class="form-label mt-4" for="streetAddress02">Street Address 2 (Optional)</label>
-              <div class="input-group">
-                <input id="streetAddress02" name="streetAddress02" class="form-control" type="text" placeholder="Apt No./Ste./Etc.">
+            <!-- City, State, Zip -->
+            <div class="row">
+              <fieldset class="col-sm-6 col-7" disabled>
+                <label class="form-label mt-4" for="city">City</label>
+                <div class="input-group">
+                  <input id="city" formControlName="city" class="form-control" type="text" [value]="city" placeholder="City">
+                </div>
+              </fieldset>
+              <fieldset class="col-sm-2 col-2" disabled>
+                <label class="form-label mt-4" for="state">State</label>
+                <div class="input-group">
+                  <input id="state" formControlName="state" class="form-control" type="text" [value]="state" placeholder="State">
+                </div>
+              </fieldset>
+              <fieldset class="col-sm-4 col-3" disabled>
+                <label class="form-label mt-4" for="zipCode">Zip Code</label>
+                <div class="input-group">
+                  <input id="zipCode" formControlName="zipCode" class="form-control" type="text" [value]="zipCode"
+                         placeholder="Zip Code">
+                </div>
+              </fieldset>
+            </div>
+            <!-- Notes -->
+            <div class="row">
+              <div class="col">
+                <label class="form-label mt-4" for="streetAddress01">Notes</label>
+                <div class="input-group">
+                  <input id="notes" formControlName="notes" class="form-control" type="text"
+                         placeholder="Enter any notes about the house here">
+                </div>
               </div>
             </div>
-          </div>
-          <!-- City, State, Zip -->
-          <div class="row">
-            <div class="col-sm-6 col-7">
-              <label class="form-label mt-4" for="city">City</label>
-              <div class="input-group">
-                <input id="city" name="city" class="form-control" type="text" [value]="city" placeholder="City" disabled>
+            <!-- Areas -->
+            <div class="row">
+              <div class="col">
+                <label class="form-label mt-4" for="areas">House Areas</label>
+                <input class="form-control" id="areas" formControlName="areas" type="text" value="Living Room, Kitchen, Office"
+                       placeholder="Enter the different areas of your house here."/>
               </div>
-            </div>
-            <div class="col-sm-2 col-2">
-              <label class="form-label mt-4" for="state">State</label>
-              <div class="input-group">
-                <input id="state" name="state" class="form-control" type="text" [value]="state" placeholder="State" disabled>
-              </div>
-            </div>
-            <div class="col-sm-4 col-3">
-              <label class="form-label mt-4" for="zipCode">Zip Code</label>
-              <div class="input-group">
-                <input id="zipCode" name="zipCode" class="form-control" type="text" [value]="zipCode" placeholder="Zip Code" disabled>
-              </div>
-            </div>
-          </div>
-          <!-- Notes -->
-          <div class="row">
-            <div class="col">
-              <label class="form-label mt-4" for="streetAddress01">Notes</label>
-              <div class="input-group">
-                <input id="notes" name="notes" class="form-control" type="text" placeholder="Enter any notes about the house here" >
-              </div>
-            </div>
-          </div>
-          <!-- Areas -->
-          <div class="row">
-            <div class="col">
-              <label class="form-label mt-4" for="areas">House Areas</label>
-              <input class="form-control" id="areas" name="areas" type="text" value="Living Room, Kitchen, Office" placeholder="Enter the different areas of your house here." />
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col text-right d-flex flex-column justify-content-center">
-      <button type="button" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-2 mt-2">Save</button>
+    <div class="row">
+      <div class="col text-right d-flex flex-column justify-content-center">
+        <button type="submit" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-2 mt-2">Save</button>
+      </div>
     </div>
-  </div>
+  </form>
 </div>
