@@ -20,7 +20,7 @@ export class CreateNewHouseComponent implements OnInit {
   choicesObj: typeof Choices; // used to get areas values from form
 
   // image upload properties
-  profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadHouseImage";
+  profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadImage";
   imageUploadObj = {} as ImageFileObject;
   changeImage = false;
   imageError: string = "";
