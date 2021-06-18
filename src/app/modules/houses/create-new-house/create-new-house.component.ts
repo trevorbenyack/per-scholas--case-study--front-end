@@ -7,6 +7,8 @@ import {ImageService} from "../../../shared/services/image.service";
 import {FileUploadService} from "../../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../../shared/models/image-file-object";
 import {HttpEvent, HttpResponse} from "@angular/common/http";
+import {HouseInfoService} from "../../../shared/services/house-info.service";
+import { Area } from 'src/app/shared/models/area';
 declare const Quill: any;
 declare const Choices: any;
 
@@ -16,13 +18,15 @@ declare const Choices: any;
   styleUrls: ['./create-new-house.component.css']
 })
 export class CreateNewHouseComponent implements OnInit {
+  // used for getting areas field values from form
+  choicesObj: typeof Choices;
 
-  choicesObj: typeof Choices; // used to get areas values from form
+  // holds the url from the server response for picture upload
+  pictureUrl: string = "";
 
   // image upload properties
   profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadImage";
   imageUploadObj = {} as ImageFileObject;
-  changeImage = false;
   imageError: string = "";
 
   // Google Maps Api Options
@@ -43,24 +47,35 @@ export class CreateNewHouseComponent implements OnInit {
               private renderer: Renderer2,
               private formBuilder: FormBuilder,
               private imageService: ImageService,
-              private fileUploadService: FileUploadService) {
+              private fileUploadService: FileUploadService,
+              private houseInfoService: HouseInfoService) {
   }
 
   ngOnInit(): void {
 
+    // listener for Choices events
+    this.renderer.listen(
+      document,
+      'addItem',
+      function (event) {
+        console.log(`Choices listener working. Event is: ${event.detail.value}`);
+      });
+
     // initializes the "Areas" Choices plugin
     if (document.getElementById('areas')) {
       const areas = document.getElementById('areas');
-      const areasChoicesObj = new Choices(areas, {
+      this.choicesObj = new Choices(areas, {
         delimiter: ',',
         editItems: true,
         maxItemCount: 10,
         removeItemButton: true,
         addItems: true
       });
-      this.choicesObj = areasChoicesObj;
     }
   } // end ngOnInit
+
+
+
 
   // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {
@@ -109,7 +124,7 @@ export class CreateNewHouseComponent implements OnInit {
     areas: ['']
   });
 
-  // // Typescript Form getter methods
+  // Typescript Form getter methods
   get houseName() { return this.houseInfoFormGroup.get('houseName'); }
   get streetAddress01() { return this.houseInfoFormGroup.get('streetAddress01'); }
   get streetAddress02() { return this.houseInfoFormGroup.get('streetAddress02'); }
@@ -117,7 +132,6 @@ export class CreateNewHouseComponent implements OnInit {
   get state() { return this.houseInfoFormGroup.get('state'); }
   get zipCode() { return this.houseInfoFormGroup.get('zipCode'); }
   get notes() { return this.houseInfoFormGroup.get('notes'); }
-  get pictureUrl() { return this.houseInfoFormGroup.get('pictureUrl'); }
   get areas() { return this.houseInfoFormGroup.get('areas'); }
 
   onSubmit(form: House): void {
@@ -127,15 +141,34 @@ export class CreateNewHouseComponent implements OnInit {
       // (will show alerts for all invalid fields) and then exit the function
       // i.e. don't do anything...
       if (this.houseInfoFormGroup.invalid) {
+        console.warn("Invalid/incomplete form data. Form not submitted.")
         // .markAllAsTouched() => touching all fields triggers the display of the error messages
         this.houseInfoFormGroup.markAllAsTouched();
         return;
       }
 
-      // ignore the red squiggly... this works
-      form.areas = this.choicesObj.getValue(true);
+      // fill in remaining house object properties
+      form.areas = this.choicesObj.getValue(true); // ignore the red squiggly... this works
+      form.pictureUrl = this.pictureUrl;
+
       console.log(form);
+
+      this.houseInfoService.saveNewHouse(form).subscribe( {
+          next: response => {
+            alert(`house ${response.houseName} was saved successfully.`);
+          },
+          error: err => {
+            alert("There was an error in attempting to save the new house: " + err.message);
+          }},
+        )
+
+
   } // end onSubmit()
+
+  // areasFieldConverter(areasArray: string[]):  {
+  //
+  // } // end areasFieldConverter()
+
 
   // IMAGE UPLOAD METHODS
 
@@ -143,7 +176,6 @@ export class CreateNewHouseComponent implements OnInit {
   onUploadedImage(image: ImageFileObject) {
     // validate image
     this.imageError = this.imageService.validateImage(image);
-
     // if image object is valid, assign it to local imageUploadObj
     if (!this.imageError) {
       this.imageUploadObj = image;
@@ -151,26 +183,12 @@ export class CreateNewHouseComponent implements OnInit {
 
     // upload the file to server
     this.fileUploadService.pushFileToStorage(this.imageUploadObj.file, this.profileImageUploadUrl)
-      .subscribe(event => this.handleEvent(event),
+      .subscribe(next => {
+          console.log("image successfully uploaded")
+          this.pictureUrl = next.fileDownloadUri;
+          this.imageUploadObj = {} as ImageFileObject;
+        },
         err => this.handleError(err));
-  }
-
-  handleEvent(event: HttpEvent<{}>) {
-    if (event instanceof HttpResponse) {
-      let body = event.body;
-      this.handleResponse(body);
-    }
-
-    // reset imageUploadObj
-    this.imageUploadObj = {} as ImageFileObject;
-  }
-
-  handleResponse(data: any) {
-    console.log(data);
-
-    // reset imageUploadObj
-    this.imageUploadObj = {} as ImageFileObject;
-
   }
 
   handleError(err: Error) {
@@ -178,4 +196,4 @@ export class CreateNewHouseComponent implements OnInit {
     this.imageError = err.message;
   }
 
-} // class
+} // end class

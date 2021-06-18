@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import {HttpErrorResponse, HttpEvent, HttpHandler, HttpRequest} from "@angular/common/http";
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpErrorResponse, HttpEvent, HttpHandler, HttpRequest} from "@angular/common/http";
 import {Observable, throwError} from "rxjs";
 import {catchError} from "rxjs/operators";
 
@@ -8,38 +8,47 @@ import {catchError} from "rxjs/operators";
 })
 export class FileUploadService {
 
-  constructor(private handler: HttpHandler) { }
+  constructor(private httpClient: HttpClient) {
+  }
 
-  pushFileToStorage(file: File, url: string): Observable<HttpEvent<{}>> {
+  pushFileToStorage(file: File, url: string): Observable<any> {
+
+    // create FormData object to package image to send to server
     const data: FormData = new FormData();
     data.append('file', file);
 
-    const newRequest = new HttpRequest('POST', url, data);
+    console.log("attempting to upload image");
 
-    // .handle(newRequest) is the method that sends the request
-    return this.handler.handle(newRequest).pipe(catchError(FileUploadService.handleError));
-  }
+    return this.httpClient.post<UploadFileResponse>(url, data).pipe(catchError(this.handleError));
 
-  private static handleError(error: HttpErrorResponse) {
+  } // end pushFileToStorage()
+
+  handleError(error: HttpErrorResponse) {
+    // A client-side or network error occurred. Handle it accordingly.
     if (error.error instanceof ErrorEvent) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error.message);
+      console.error('An error occurred:', error.message);
     } else {
       // The backend returned an unsuccessful response code.
       console.error(
         `Backend returned code ${error.status}, ` +
-        `body was: ${error.error}`);
+        `body was: ${error.message}`);
 
       if (error.status == 403) {
         throw new Error("You are not permitted to make changes on this account");
-      }
+      } // end if(403)
 
       throw new Error("Unexpected error - please try again later");
-    }
+    } // end else
 
     // return an observable with a user-facing error message
     return throwError("Unexpected error - please try again later");
   };
+} // end FileUploadService
 
-
+// Intended server response object
+interface UploadFileResponse {
+  fileName: string,
+  fileDownloadUri: string,
+  fileType: string,
+  size: number
 }
