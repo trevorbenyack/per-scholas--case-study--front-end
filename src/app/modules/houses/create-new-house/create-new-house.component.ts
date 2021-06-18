@@ -1,15 +1,13 @@
 import { Component, ElementRef, OnInit, Renderer2} from '@angular/core';
 import { Options } from 'ngx-google-places-autocomplete/objects/options/options';
 import { Address } from "ngx-google-places-autocomplete/objects/address";
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { House } from '../../../shared/models/house'
 import {ImageService} from "../../../shared/services/image.service";
 import {FileUploadService} from "../../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../../shared/models/image-file-object";
-import {HttpEvent, HttpResponse} from "@angular/common/http";
+
 import {HouseInfoService} from "../../../shared/services/house-info.service";
-import { Area } from 'src/app/shared/models/area';
-declare const Quill: any;
 declare const Choices: any;
 
 @Component({
@@ -127,7 +125,6 @@ export class CreateNewHouseComponent implements OnInit {
   // Typescript Form getter methods
   get houseName() { return this.houseInfoFormGroup.get('houseName'); }
   get streetAddress01() { return this.houseInfoFormGroup.get('streetAddress01'); }
-  get streetAddress02() { return this.houseInfoFormGroup.get('streetAddress02'); }
   get city() { return this.houseInfoFormGroup.get('city'); }
   get state() { return this.houseInfoFormGroup.get('state'); }
   get zipCode() { return this.houseInfoFormGroup.get('zipCode'); }
