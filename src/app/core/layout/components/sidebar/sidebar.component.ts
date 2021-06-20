@@ -8,6 +8,8 @@ import {Router, ActivatedRoute, IsActiveMatchOptions} from "@angular/router";
 })
 export class SidebarComponent implements OnInit {
 
+  userHousesNames: string[] = [];
+
   constructor(public router: Router) { }
 
   // used for adding "active" class to parent of a currently active child nav item
@@ -22,5 +24,7 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
   }
+
+
 
 }

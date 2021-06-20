@@ -8,6 +8,8 @@ import {FileUploadService} from "../../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../../shared/models/image-file-object";
 
 import {HouseInfoService} from "../../../shared/services/house-info.service";
+import {AreasService} from "../../../shared/services/areas.service";
+import {Area} from "../../../shared/models/area";
 declare const Choices: any;
 
 @Component({
@@ -21,6 +23,9 @@ export class CreateNewHouseComponent implements OnInit {
 
   // holds the url from the server response for picture upload
   pictureUrl: string = "";
+
+  // holds resource urls for areas saved to the server
+  addHouseToAreaUrlArray: string[] = [];
 
   // image upload properties
   profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadImage";
@@ -39,14 +44,13 @@ export class CreateNewHouseComponent implements OnInit {
     }
   } as Options; // "as ..." tells TypeScript to type this object as the defined type instead of the default
 
-
-
   constructor(private elementRef: ElementRef,
               private renderer: Renderer2,
               private formBuilder: FormBuilder,
               private imageService: ImageService,
               private fileUploadService: FileUploadService,
-              private houseInfoService: HouseInfoService) {
+              private houseInfoService: HouseInfoService,
+              private areasService: AreasService) {
   }
 
   ngOnInit(): void {
@@ -55,7 +59,8 @@ export class CreateNewHouseComponent implements OnInit {
     this.renderer.listen(
       document,
       'addItem',
-      function (event) {
+      (event) => {
+        this.saveArea(event.detail.value);
         console.log(`Choices listener working. Event is: ${event.detail.value}`);
       });
 
@@ -72,8 +77,22 @@ export class CreateNewHouseComponent implements OnInit {
     }
   } // end ngOnInit
 
-
-
+  // saves area to server when user enters new area
+  saveArea(areaName: string) {
+    console.debug("savedAreas() called");
+    const areaToSave = {} as Area;
+    areaToSave.areaName = areaName;
+    this.areasService.saveAreaToServer(areaToSave).subscribe( {
+      next: response => {
+        this.addHouseToAreaUrlArray.push(response._links.house.href);
+        console.debug("addHouseToAreayUrlArray is: ");
+        this.addHouseToAreaUrlArray.forEach(console.debug);
+      },
+      error: err => {
+        console.warn("Area could not be saved to server.")
+      }
+    });
+  }
 
   // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {
@@ -129,7 +148,6 @@ export class CreateNewHouseComponent implements OnInit {
   get state() { return this.houseInfoFormGroup.get('state'); }
   get zipCode() { return this.houseInfoFormGroup.get('zipCode'); }
   get notes() { return this.houseInfoFormGroup.get('notes'); }
-  get areas() { return this.houseInfoFormGroup.get('areas'); }
 
   onSubmit(form: House): void {
       console.log('populating a new house object');
@@ -153,6 +171,18 @@ export class CreateNewHouseComponent implements OnInit {
       this.houseInfoService.saveNewHouse(form).subscribe( {
           next: response => {
             alert(`house ${response.houseName} was saved successfully.`);
+
+            const houseResourceUrl: string = response._links.self.href;
+            console.debug(`houseResourceUrl is : ${houseResourceUrl}`)
+
+            this.addHouseToAreaUrlArray.forEach( areaUrl => this.areasService.saveHouseToArea(areaUrl, houseResourceUrl).subscribe( {
+              next: value => {
+                console.log("House was successfully associated with area.")
+              },
+              error: err => {
+                console.log("There was an error associating the house with the area: " + err.message);
+              }
+            }));
           },
           error: err => {
             alert("There was an error in attempting to save the new house: " + err.message);
@@ -161,11 +191,6 @@ export class CreateNewHouseComponent implements OnInit {
 
 
   } // end onSubmit()
-
-  // areasFieldConverter(areasArray: string[]):  {
-  //
-  // } // end areasFieldConverter()
-
 
   // IMAGE UPLOAD METHODS
 

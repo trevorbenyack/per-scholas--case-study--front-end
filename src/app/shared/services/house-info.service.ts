@@ -13,6 +13,29 @@ export class HouseInfoService {
   constructor(private httpClient: HttpClient) { }
 
   saveNewHouse(house: House): Observable<any> {
-    return this.httpClient.post<House>(this.housesUrl, house);
+    return this.httpClient.post<HouseInfoResponse>(this.housesUrl, house);
+  }
+}
+
+interface HouseInfoResponse {
+  "houseId": string,
+  "houseName": string,
+  "streetAddress01": string,
+  "streetAddress02": string,
+  "city": string,
+  "state": string,
+  "zipCode": string,
+  "notes": string,
+  "pictureUrl": string,
+  "_links": {
+    "self": {
+      "href": string
+    },
+    "house": {
+      "href": string
+    },
+    "users": {
+      "href": string
+    }
   }
 }
