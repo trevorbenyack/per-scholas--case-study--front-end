@@ -17,10 +17,10 @@ declare const Choices: any;
 
 @Component({
   selector: 'app-create-new-house',
-  templateUrl: './create-new-house.component.html',
-  styleUrls: ['./create-new-house.component.css']
+  templateUrl: './house-information.component.html',
+  styleUrls: ['./house-information.component.css']
 })
-export class CreateNewHouseComponent implements OnInit {
+export class HouseInformationComponent implements OnInit {
 
   // Event emitter for houseSave/Update
   @Output() houseSaveEvent = new EventEmitter();
@@ -69,7 +69,7 @@ export class CreateNewHouseComponent implements OnInit {
       document,
       'addItem',
       (event) => {
-        this.saveArea(event.detail.value);
+        this.addAreaToUnsavedHouse(event.detail.value);
         console.log(`Choices listener working. Event is: ${event.detail.value}`);
       });
 
@@ -86,21 +86,40 @@ export class CreateNewHouseComponent implements OnInit {
     }
   } // end ngOnInit
 
-  // saves area to server when user enters new area
-  saveArea(areaName: string) {
-    console.debug("savedAreas() called");
+  // saves area to form group as user enters it
+  addAreaToUnsavedHouse(areaName: string) {
+    console.debug("addAreaToUnsavedHouse() called");
 
+    // holds area objects when user enters them
+    let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
 
+    // package area name in area object to add to formGroup
+    const areaToSave: Area = {areaName: areaName};
+
+    areas.push(this.rxFormBuilder.formGroup(Area, areaToSave))
+
+  }
+
+  // saves area to server as user enters it, and then saves result to formGroup
+  addAreaToSavedHouse(areaName: string) {
+    console.debug("addAreaToSavedHouse() called");
 
     // holds area objects when user enters them
     let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
 
     // package area name in area object to send to back end
     const areaToSave: Area = {areaName: areaName};
-
-    areas.push(this.rxFormBuilder.formGroup(Area, areaToSave))
-
+    this.areasService.saveAreaToServer(areaToSave).subscribe({
+      next: response => {
+        areaToSave.areaId = response.areaId;
+        areas.push(this.rxFormBuilder.formGroup(Area, areaToSave));
+      },
+      error: err => {
+        console.error("There was an error saving the house to the server. Error: " + err.message)
+      }}
+    )
   }
+
 
   // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {

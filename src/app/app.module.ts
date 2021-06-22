@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CoreModule } from "./core/core.module";
-import { CreateNewHouseComponent } from './modules/houses/create-new-house/create-new-house.component';
+import { HouseInformationComponent } from './modules/houses/house-information/house-information.component';
 import { DashboardComponent } from './modules/dashboard/dashboard/dashboard.component';
 import { GooglePlaceModule } from "ngx-google-places-autocomplete";
 import { ReportsComponent } from './modules/report/reports/reports.component';
@@ -17,7 +17,7 @@ import { RxReactiveFormsModule } from "@rxweb/reactive-form-validators"
 @NgModule({
   declarations: [
     AppComponent,
-    CreateNewHouseComponent,
+    HouseInformationComponent,
     DashboardComponent,
     ReportsComponent,
     ImagePickerComponent
