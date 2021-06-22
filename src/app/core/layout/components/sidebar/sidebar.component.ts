@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute, IsActiveMatchOptions} from "@angular/router";
-import {HouseListService} from "../../../../shared/services/house-list.service";
+import {HouseService} from "../../../../shared/services/house.service";
+import {House} from "../../../../shared/models/house";
 
 @Component({
   selector: 'app-sidebar',
@@ -9,10 +10,10 @@ import {HouseListService} from "../../../../shared/services/house-list.service";
 })
 export class SidebarComponent implements OnInit {
 
-  userHousesNames: string[] = [];
+  userHouses: House[] = [];
 
   constructor(public router: Router,
-              private houseListService: HouseListService) { }
+              private houseService: HouseService) { }
 
   // used for adding "active" class to parent of a currently active child nav item
   // used in the "[class.active]="router.isActive('/houses', isActiveMatchOptions)" tag
@@ -25,15 +26,24 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
+    this.getUserSidebarHouses();
+
   }
 
   getUserSidebarHouses() {
 
-    this.houseListService.getUserHouses().subscribe({
-      next: value => {},
-      error: err => {}
+    this.houseService.getAllHouses().subscribe({
+      next: value => {
+        console.debug("User's houses were successfully retrieved.")
+        this.userHouses = value;
+        console.debug("User's houses are: ");
+        this.userHouses.forEach(h => console.debug(h))
+      },
+      error: err => {
+        alert("There was an error retrieving the user's houses.")
+      }
     });
-    // get house names, areas, from server to display to user
   }
 
 

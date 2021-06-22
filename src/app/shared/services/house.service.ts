@@ -6,7 +6,7 @@ import {Observable} from "rxjs";
 @Injectable({
   providedIn: 'root'
 })
-export class HouseInfoService {
+export class HouseService {
 
   housesUrl: string = "http://localhost:8080/api/houses/"
 
@@ -14,6 +14,10 @@ export class HouseInfoService {
 
   saveNewHouse(house: House): Observable<any> {
     return this.httpClient.post<House>(this.housesUrl, house);
+  }
+
+  getAllHouses(): Observable<any> {
+    return this.httpClient.get<House>(this.housesUrl);
   }
 }
 

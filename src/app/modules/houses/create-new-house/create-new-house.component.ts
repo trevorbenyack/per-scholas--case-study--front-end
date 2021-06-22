@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
+import {Component, ElementRef, EventEmitter, OnInit, Output, Renderer2} from '@angular/core';
 import {Options} from 'ngx-google-places-autocomplete/objects/options/options';
 import {Address} from "ngx-google-places-autocomplete/objects/address";
 // import { FormBuilder, FormGroup, Validators } from "@angular/forms";
@@ -7,7 +7,7 @@ import {ImageService} from "../../../shared/services/image.service";
 import {FileUploadService} from "../../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../../shared/models/image-file-object";
 
-import {HouseInfoService} from "../../../shared/services/house-info.service";
+import {HouseService} from "../../../shared/services/house.service";
 import {AreasService} from "../../../shared/services/areas.service";
 import {Area} from "../../../shared/models/area";
 import {RxFormBuilder} from "@rxweb/reactive-form-validators";
@@ -21,6 +21,10 @@ declare const Choices: any;
   styleUrls: ['./create-new-house.component.css']
 })
 export class CreateNewHouseComponent implements OnInit {
+
+  // Event emitter for houseSave/Update
+  @Output() houseSaveEvent = new EventEmitter();
+
   // form object
   houseInfoFormGroup: FormGroup;
 
@@ -52,7 +56,7 @@ export class CreateNewHouseComponent implements OnInit {
               private rxFormBuilder: RxFormBuilder,
               private imageService: ImageService,
               private fileUploadService: FileUploadService,
-              private houseInfoService: HouseInfoService,
+              private houseInfoService: HouseService,
               private areasService: AreasService) {
 
     this.houseInfoFormGroup = this.rxFormBuilder.formGroup(House);
@@ -86,28 +90,16 @@ export class CreateNewHouseComponent implements OnInit {
   saveArea(areaName: string) {
     console.debug("savedAreas() called");
 
-    const areaToSave = {} as Area;
 
-    // holds area objects returned from server when saved
+
+    // holds area objects when user enters them
     let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
 
     // package area name in area object to send to back end
-    areaToSave.areaName = areaName;
+    const areaToSave: Area = {areaName: areaName};
 
-    this.areasService.saveAreaToServer(areaToSave).subscribe({
-      next: response => {
-        areaToSave.areaId = response.areaId;
-        areas.push(this.rxFormBuilder.formGroup(Area, areaToSave));
-        console.debug("response is: ");
-        console.debug(response);
-        console.debug("areas Array is:")
-        //areas.forEach(a => console.debug(a))
-        console.log(areas.getRawValue());
-      },
-      error: err => {
-        console.warn("Area could not be saved to server.")
-      }
-    });
+    areas.push(this.rxFormBuilder.formGroup(Area, areaToSave))
+
   }
 
   // auto-populates address fields from Google Maps Places API
