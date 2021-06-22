@@ -17,17 +17,19 @@ export class AreasService {
     return this.httpClient.post<AreaResponse>(this.areasUrl, area);
   }
 
-  saveHouseToArea(areaAddHousePostUrl: string, houseResourceUrl: string): Observable<any> {
-
-    console.debug("inside saveHouseToArea()")
-
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type':  'text/uri-list'
-      })
-    };
-    return this.httpClient.put(areaAddHousePostUrl, houseResourceUrl, httpOptions);
-  }
+  // saveAreaToHouse(putAreaToHouseUrl: string, areaResourceUrl: string): Observable<any> {
+  //
+  //   console.debug("inside saveAreaToHouse()")
+  //   console.debug("putAreaToHouseUrl is: " + putAreaToHouseUrl);
+  //   console.debug("areaResourceUrl is: " + areaResourceUrl);
+  //
+  //   const httpOptions = {
+  //     headers: new HttpHeaders({
+  //       'Content-Type':  'text/uri-list'
+  //     })
+  //   };
+  //   return this.httpClient.put<Area>(putAreaToHouseUrl, areaResourceUrl, httpOptions);
+  // }
 }
 
 interface AreaResponse {

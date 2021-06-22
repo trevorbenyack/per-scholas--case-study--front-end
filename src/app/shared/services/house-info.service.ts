@@ -13,7 +13,7 @@ export class HouseInfoService {
   constructor(private httpClient: HttpClient) { }
 
   saveNewHouse(house: House): Observable<any> {
-    return this.httpClient.post<HouseInfoResponse>(this.housesUrl, house);
+    return this.httpClient.post<House>(this.housesUrl, house);
   }
 }
 

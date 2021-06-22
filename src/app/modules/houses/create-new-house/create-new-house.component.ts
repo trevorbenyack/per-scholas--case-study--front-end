@@ -1,8 +1,8 @@
-import { Component, ElementRef, OnInit, Renderer2} from '@angular/core';
-import { Options } from 'ngx-google-places-autocomplete/objects/options/options';
-import { Address } from "ngx-google-places-autocomplete/objects/address";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { House } from '../../../shared/models/house'
+import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
+import {Options} from 'ngx-google-places-autocomplete/objects/options/options';
+import {Address} from "ngx-google-places-autocomplete/objects/address";
+// import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import {House} from '../../../shared/models/house'
 import {ImageService} from "../../../shared/services/image.service";
 import {FileUploadService} from "../../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../../shared/models/image-file-object";
@@ -10,6 +10,9 @@ import {ImageFileObject} from "../../../shared/models/image-file-object";
 import {HouseInfoService} from "../../../shared/services/house-info.service";
 import {AreasService} from "../../../shared/services/areas.service";
 import {Area} from "../../../shared/models/area";
+import {RxFormBuilder} from "@rxweb/reactive-form-validators";
+import {FormArray, FormGroup} from "@angular/forms";
+
 declare const Choices: any;
 
 @Component({
@@ -18,14 +21,14 @@ declare const Choices: any;
   styleUrls: ['./create-new-house.component.css']
 })
 export class CreateNewHouseComponent implements OnInit {
+  // form object
+  houseInfoFormGroup: FormGroup;
+
   // used for getting areas field values from form
   choicesObj: typeof Choices;
 
   // holds the url from the server response for picture upload
   pictureUrl: string = "";
-
-  // holds resource urls for areas saved to the server
-  addHouseToAreaUrlArray: string[] = [];
 
   // image upload properties
   profileImageUploadUrl: string = "http://localhost:8080/api/users/photos/uploadImage";
@@ -36,21 +39,23 @@ export class CreateNewHouseComponent implements OnInit {
   // Had to import Options directly, per advice at:
   // https://github.com/skynet2/ngx-google-places-autocomplete/issues/91
   formattedAddress = "";
-  options={
+  options = {
     fields: ["address_components"],
     types: ["address"],
-    componentRestrictions:{
+    componentRestrictions: {
       country: "US"
     }
   } as Options; // "as ..." tells TypeScript to type this object as the defined type instead of the default
 
   constructor(private elementRef: ElementRef,
               private renderer: Renderer2,
-              private formBuilder: FormBuilder,
+              private rxFormBuilder: RxFormBuilder,
               private imageService: ImageService,
               private fileUploadService: FileUploadService,
               private houseInfoService: HouseInfoService,
               private areasService: AreasService) {
+
+    this.houseInfoFormGroup = this.rxFormBuilder.formGroup(House);
   }
 
   ngOnInit(): void {
@@ -80,13 +85,24 @@ export class CreateNewHouseComponent implements OnInit {
   // saves area to server when user enters new area
   saveArea(areaName: string) {
     console.debug("savedAreas() called");
+
     const areaToSave = {} as Area;
+
+    // holds area objects returned from server when saved
+    let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
+
+    // package area name in area object to send to back end
     areaToSave.areaName = areaName;
-    this.areasService.saveAreaToServer(areaToSave).subscribe( {
+
+    this.areasService.saveAreaToServer(areaToSave).subscribe({
       next: response => {
-        this.addHouseToAreaUrlArray.push(response._links.house.href);
-        console.debug("addHouseToAreayUrlArray is: ");
-        this.addHouseToAreaUrlArray.forEach(console.debug);
+        areaToSave.areaId = response.areaId;
+        areas.push(this.rxFormBuilder.formGroup(Area, areaToSave));
+        console.debug("response is: ");
+        console.debug(response);
+        console.debug("areas Array is:")
+        //areas.forEach(a => console.debug(a))
+        console.log(areas.getRawValue());
       },
       error: err => {
         console.warn("Area could not be saved to server.")
@@ -99,7 +115,7 @@ export class CreateNewHouseComponent implements OnInit {
 
     let street_number: string = "";
 
-    for(let address_component of address.address_components) {
+    for (let address_component of address.address_components) {
       const componentType = address_component.types[0];
       switch (componentType) {
         case "street_number": {
@@ -107,19 +123,19 @@ export class CreateNewHouseComponent implements OnInit {
           break;
         }
         case "route": {
-          this.streetAddress01?.setValue(`${street_number} ${address_component.short_name}`);
+          this.houseInfoFormGroup.controls.streetAddress01.setValue(`${street_number} ${address_component.short_name}`);
           break;
         }
         case "locality": {
-          this.city?.setValue(address_component.long_name);
+          this.houseInfoFormGroup.controls.city.setValue(address_component.long_name);
           break;
         }
         case "administrative_area_level_1": {
-          this.state?.setValue(address_component.short_name);
+          this.houseInfoFormGroup.controls.state.setValue(address_component.short_name);
           break;
         }
         case "postal_code": {
-          this.zipCode?.setValue(address_component.long_name);
+          this.houseInfoFormGroup.controls.zipCode.setValue(address_component.long_name);
           break;
         }
       } // end switch statement
@@ -129,65 +145,40 @@ export class CreateNewHouseComponent implements OnInit {
 
   } // end handleAddressChange()
 
-  houseInfoFormGroup: FormGroup = this.formBuilder.group( {
-    houseName: ['',[Validators.required, Validators.minLength(2)]],
-    streetAddress01: ['', [Validators.required]],
-    streetAddress02: [''],
-    city: ['', [Validators.required]],
-    state: ['', [Validators.required]],
-    zipCode: ['', [Validators.required]],
-    notes: [''],
-    pictureUrl: [''],
-    areas: ['']
-  });
 
-  // Typescript Form getter methods
-  get houseName() { return this.houseInfoFormGroup.get('houseName'); }
-  get streetAddress01() { return this.houseInfoFormGroup.get('streetAddress01'); }
-  get city() { return this.houseInfoFormGroup.get('city'); }
-  get state() { return this.houseInfoFormGroup.get('state'); }
-  get zipCode() { return this.houseInfoFormGroup.get('zipCode'); }
-  get notes() { return this.houseInfoFormGroup.get('notes'); }
+  onSubmit(): void {
+    console.debug('populating a new house object');
 
-  onSubmit(form: House): void {
-      console.log('populating a new house object');
+    // if there are invalid values in the fields, mark all the fields as touched
+    // (will show alerts for all invalid fields) and then exit the function
+    // i.e. don't do anything...
+    if (this.houseInfoFormGroup.invalid) {
+      console.warn("Invalid/incomplete form data. Form not submitted.")
+      // .markAllAsTouched() => touching all fields triggers the display of the error messages
+      this.houseInfoFormGroup.markAllAsTouched();
+      return;
+    }
 
-      // if there are invalid values in the fields, mark all the fields as touched
-      // (will show alerts for all invalid fields) and then exit the function
-      // i.e. don't do anything...
-      if (this.houseInfoFormGroup.invalid) {
-        console.warn("Invalid/incomplete form data. Form not submitted.")
-        // .markAllAsTouched() => touching all fields triggers the display of the error messages
-        this.houseInfoFormGroup.markAllAsTouched();
-        return;
-      }
+    // fill in remaining house object properties
+    this.houseInfoFormGroup.controls.pictureUrl.setValue(this.pictureUrl);
 
-      // fill in remaining house object properties
-      form.areas = this.choicesObj.getValue(true); // ignore the red squiggly... this works
-      form.pictureUrl = this.pictureUrl;
+    // TODO: Delete this
+    // don't think I need this.... but leaving it here for now.
+    // const areas: string = this.choicesObj.getValue(true); // ignore the red squiggly... this works
 
-      console.log(form);
 
-      this.houseInfoService.saveNewHouse(form).subscribe( {
-          next: response => {
-            alert(`house ${response.houseName} was saved successfully.`);
+    console.debug("new house object is:");
+    console.debug(this.houseInfoFormGroup.value);
 
-            const houseResourceUrl: string = response._links.self.href;
-            console.debug(`houseResourceUrl is : ${houseResourceUrl}`)
-
-            this.addHouseToAreaUrlArray.forEach( areaUrl => this.areasService.saveHouseToArea(areaUrl, houseResourceUrl).subscribe( {
-              next: value => {
-                console.log("House was successfully associated with area.")
-              },
-              error: err => {
-                console.log("There was an error associating the house with the area: " + err.message);
-              }
-            }));
-          },
-          error: err => {
-            alert("There was an error in attempting to save the new house: " + err.message);
-          }},
-        )
+    this.houseInfoService.saveNewHouse(this.houseInfoFormGroup.value).subscribe({
+        next: response => {
+          console.info(`house ${response.houseName} was saved successfully.`);
+        },
+        error: err => {
+          alert("There was an error in attempting to save the new house: " + err.message + " status is : " + err.status);
+        }
+      },
+    )
 
 
   } // end onSubmit()

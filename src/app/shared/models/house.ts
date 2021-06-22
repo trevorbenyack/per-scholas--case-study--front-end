@@ -1,16 +1,17 @@
 import {User} from "./user";
 import {Area} from "./area";
 
-export interface House {
-  houseId: number,
-  houseName: string,
-  streetAddress01: string,
-  streetAddress02: string,
-  city: string,
-  state: string,
-  zipCode: string,
-  notes: string,
-  pictureUrl: string,
-  areas: Area[],
-  users: User[]
+import { required,prop,propObject,propArray } from "@rxweb/reactive-form-validators";
+
+export class House {
+  public houseId?: number;
+  @required() public houseName: string = "";
+  @required() public streetAddress01: string = "";
+  @prop() public streetAddress02: string = "";
+  @required() public city: string = "";
+  @required() public state: string = "";
+  @prop() public zipCode: string = "";
+  @prop() public notes: string = "";
+  @prop() public pictureUrl: string = "";
+  @propArray() public areas: Area[] = [];
 }

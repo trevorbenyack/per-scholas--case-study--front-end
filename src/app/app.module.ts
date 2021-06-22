@@ -9,8 +9,10 @@ import { DashboardComponent } from './modules/dashboard/dashboard/dashboard.comp
 import { GooglePlaceModule } from "ngx-google-places-autocomplete";
 import { ReportsComponent } from './modules/report/reports/reports.component';
 import { ImagePickerComponent } from './shared/components/image-picker/image-picker.component';
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { HttpClientModule } from "@angular/common/http";
+import { RxReactiveFormsModule } from "@rxweb/reactive-form-validators"
+
 
 @NgModule({
   declarations: [
@@ -26,7 +28,9 @@ import { HttpClientModule } from "@angular/common/http";
         CoreModule,
         GooglePlaceModule,
         ReactiveFormsModule,
-        HttpClientModule
+        HttpClientModule,
+        FormsModule,
+        RxReactiveFormsModule
     ],
   providers: [],
   bootstrap: [AppComponent]

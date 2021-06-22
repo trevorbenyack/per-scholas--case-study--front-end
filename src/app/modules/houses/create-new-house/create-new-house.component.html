@@ -5,7 +5,7 @@
       <p>Fill out the fields below to add a new house to your account.</p>
     </div>
   </div>
-  <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit(houseInfoFormGroup.value)">
+  <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit()">
     <div class="row mt-4">
       <div class="col-lg-4">
         <app-image-picker (uploadedImageEvent)="onUploadedImage($event)"></app-image-picker>
@@ -65,19 +65,19 @@
               <fieldset class="col-sm-6 col-7" disabled>
                 <label class="form-label mt-4" for="city">City</label>
                 <div class="input-group">
-                  <input id="city" formControlName="city" class="form-control" type="text" [value]="city" placeholder="City">
+                  <input id="city" formControlName="city" class="form-control" type="text" placeholder="City">
                 </div>
               </fieldset>
               <fieldset class="col-sm-2 col-2" disabled>
                 <label class="form-label mt-4" for="state">State</label>
                 <div class="input-group">
-                  <input id="state" formControlName="state" class="form-control" type="text" [value]="state" placeholder="State">
+                  <input id="state" formControlName="state" class="form-control" type="text"  placeholder="State">
                 </div>
               </fieldset>
               <fieldset class="col-sm-4 col-3" disabled>
                 <label class="form-label mt-4" for="zipCode">Zip Code</label>
                 <div class="input-group">
-                  <input id="zipCode" formControlName="zipCode" class="form-control" type="text" [value]="zipCode"
+                  <input id="zipCode" formControlName="zipCode" class="form-control" type="text"
                          placeholder="Zip Code">
                 </div>
               </fieldset>
@@ -96,7 +96,7 @@
             <div class="row">
               <div class="col">
                 <label class="form-label mt-4" for="areas">House Areas</label>
-                <input class="form-control" id="areas" formControlName="areas" type="text" value="Living Room, Kitchen, Office"
+                <input class="form-control" id="areas" type="text" value="Living Room, Kitchen, Office"
                        placeholder="Enter the different areas of your house here."/>
               </div>
             </div>

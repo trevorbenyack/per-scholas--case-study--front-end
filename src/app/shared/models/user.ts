@@ -5,6 +5,16 @@ export interface User {
   email: string,
   firstName: string,
   lastName: string,
-  phoneNumber: string,
-  houses: House[]
+  phoneNumber: string
+  // _links: {
+  //   self: {
+  //     href: string
+  //   },
+  //   user: {
+  //     href: string
+  //   },
+  //   houses: {
+  //     href: string
+  //   }
+  // }
 }
