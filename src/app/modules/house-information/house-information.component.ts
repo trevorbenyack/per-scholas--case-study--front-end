@@ -94,6 +94,7 @@ export class HouseInformationComponent implements OnInit {
                 console.log("Server response is: ");
                 console.log(value);
                 this.houseInfoFormGroup.patchValue(value);
+                this.pictureUrl = value.pictureUrl;
               },
               error: err => {
                 console.warn("There was an error retrieving the house object from the server. ");
@@ -103,6 +104,7 @@ export class HouseInformationComponent implements OnInit {
             console.log(next.house);
 
             this.houseInfoFormGroup.patchValue(next.house);
+            this.pictureUrl = next.house.pictureUrl;
           }
         });
     }

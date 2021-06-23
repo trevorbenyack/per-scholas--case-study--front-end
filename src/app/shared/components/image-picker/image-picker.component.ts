@@ -1,4 +1,4 @@
-import {Component, OnInit, Output, EventEmitter, ElementRef, Renderer2} from '@angular/core';
+import {Component, OnInit, Output, EventEmitter, ElementRef, Renderer2, Input} from '@angular/core';
 import {ImageService} from "../../services/image.service";
 import {ImageFileObject} from "../../models/image-file-object";
 
@@ -10,6 +10,8 @@ import {ImageFileObject} from "../../models/image-file-object";
 })
 export class ImagePickerComponent implements OnInit {
   // used to conditionally show preview photo
+
+  @Input()
   public image: any;
   public altImage: string = "/assets/img/house-placeholder-image.png";
 
