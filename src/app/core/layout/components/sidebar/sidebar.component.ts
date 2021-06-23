@@ -46,6 +46,12 @@ export class SidebarComponent implements OnInit {
     });
   }
 
+  isActive(instruction: any[]): boolean {
+    // Set the second parameter to true if you want to require an exact match.
+    return this.router.isActive(this.router.createUrlTree(instruction), this.isActiveMatchOptions);
+  }
+
+
 
 
 }

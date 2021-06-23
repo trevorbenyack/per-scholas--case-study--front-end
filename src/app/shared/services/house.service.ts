@@ -19,6 +19,11 @@ export class HouseService {
   getAllHouses(): Observable<any> {
     return this.httpClient.get<House>(this.housesUrl);
   }
+
+  getHouse(houseId: string): Observable<any> {
+    return this.httpClient.get<House>(`${this.housesUrl}/${houseId}`);
+  }
+
 }
 
 interface HouseInfoResponse {

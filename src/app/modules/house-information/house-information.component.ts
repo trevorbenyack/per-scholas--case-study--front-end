@@ -1,29 +1,32 @@
-import {Component, ElementRef, EventEmitter, OnInit, Output, Renderer2} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnInit, Output, Renderer2, OnChanges} from '@angular/core';
 import {Options} from 'ngx-google-places-autocomplete/objects/options/options';
 import {Address} from "ngx-google-places-autocomplete/objects/address";
-// import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import {House} from '../../../shared/models/house'
-import {ImageService} from "../../../shared/services/image.service";
-import {FileUploadService} from "../../../shared/services/file-upload.service";
-import {ImageFileObject} from "../../../shared/models/image-file-object";
+import { FormBuilder, FormGroup, Validators, FormArray } from "@angular/forms";
+import {House} from '../../shared/models/house'
+import {ImageService} from "../../shared/services/image.service";
+import {FileUploadService} from "../../shared/services/file-upload.service";
+import {ImageFileObject} from "../../shared/models/image-file-object";
 
-import {HouseService} from "../../../shared/services/house.service";
-import {AreasService} from "../../../shared/services/areas.service";
-import {Area} from "../../../shared/models/area";
+import {HouseService} from "../../shared/services/house.service";
+import {AreasService} from "../../shared/services/areas.service";
+import {Area} from "../../shared/models/area";
 import {RxFormBuilder} from "@rxweb/reactive-form-validators";
-import {FormArray, FormGroup} from "@angular/forms";
+import {map} from "rxjs/operators";
+import {ActivatedRoute} from "@angular/router";
 
 declare const Choices: any;
 
 @Component({
-  selector: 'app-create-new-house',
+  selector: 'app-house-information',
   templateUrl: './house-information.component.html',
   styleUrls: ['./house-information.component.css']
 })
 export class HouseInformationComponent implements OnInit {
 
-  // Event emitter for houseSave/Update
-  @Output() houseSaveEvent = new EventEmitter();
+  isNewHouse: boolean = true;
+
+  // // Event emitter for houseSave/Update
+  // @Output() houseSaveEvent = new EventEmitter();
 
   // form object
   houseInfoFormGroup: FormGroup;
@@ -57,21 +60,52 @@ export class HouseInformationComponent implements OnInit {
               private imageService: ImageService,
               private fileUploadService: FileUploadService,
               private houseInfoService: HouseService,
-              private areasService: AreasService) {
-
+              private areasService: AreasService,
+              private route: ActivatedRoute,) {
     this.houseInfoFormGroup = this.rxFormBuilder.formGroup(House);
   }
 
   ngOnInit(): void {
-
     // listener for Choices events
     this.renderer.listen(
       document,
       'addItem',
       (event) => {
-        this.addAreaToUnsavedHouse(event.detail.value);
+        this.AddAreaToHouse(event.detail.value);
         console.log(`Choices listener working. Event is: ${event.detail.value}`);
       });
+
+    // This retrieves whether this component is considered to be for a new House or an existing house
+    console.debug(this.route.snapshot.url[1].path);
+    this.isNewHouse = this.route.snapshot.url[1].path === "createNewHouse";
+    console.debug("isNewHouseValue is: " + this.isNewHouse);
+
+    if(!this.isNewHouse) {
+      // This retrieves the house object in order to auto-populate the fields of the form
+      this.route.paramMap.pipe(map(() => window.history.state))
+        .subscribe(next => {
+          // if there is no state object (fresh/re-load)
+          if(!next.house) {
+            // get the houseId param and make server request to get corresponding house object
+            this.houseInfoService.getHouse(next.navigationId).subscribe({
+              next: value => {
+                console.warn("Newly loaded page's state did not include a House object.");
+                console.debug(`Retried house ${next.navigationId} object from server`);
+                console.log("Server response is: ");
+                console.log(value);
+                this.houseInfoFormGroup.patchValue(value);
+              },
+              error: err => {
+                console.warn("There was an error retrieving the house object from the server. ");
+              }});
+          } else { // else called by router
+            console.log("House object retrieved from state is: ");
+            console.log(next.house);
+
+            this.houseInfoFormGroup.patchValue(next.house);
+          }
+        });
+    }
 
     // initializes the "Areas" Choices plugin
     if (document.getElementById('areas')) {
@@ -84,7 +118,27 @@ export class HouseInformationComponent implements OnInit {
         addItems: true
       });
     }
+
+
   } // end ngOnInit
+
+  // Spring doesn't want to accept an Area[] that has a mix of area
+  // objects that do and do not have areaIds. If the user is trying to create
+  // a new house, then the areas will be new as well, and none of them will
+  // have areaIds. In this instance, this will call addAreaToUnsavedHouse()
+  // which will create a FormArray of area objects, all w/o areaIds.
+  // If the user is trying to update a house _and add a new area_, then this
+  // will call addAreaToSavedHouse() which will save the area to server first,
+  // and then add the area w/ areaId to the FormArray of area objects.
+  AddAreaToHouse(areaName: string) {
+
+    if (this.isNewHouse) {
+      this.addAreaToUnsavedHouse(areaName);
+    } else {
+      this.addAreaToSavedHouse(areaName);
+    }
+
+  }
 
   // saves area to form group as user enters it
   addAreaToUnsavedHouse(areaName: string) {
@@ -119,7 +173,6 @@ export class HouseInformationComponent implements OnInit {
       }}
     )
   }
-
 
   // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {
