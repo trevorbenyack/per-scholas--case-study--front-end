@@ -1,7 +1,6 @@
-import {User} from "./user";
 import {Area} from "./area";
 
-import { required,prop,propObject,propArray } from "@rxweb/reactive-form-validators";
+import { required,prop,propArray } from "@rxweb/reactive-form-validators";
 
 export class House {
   @prop() public houseId?: number;

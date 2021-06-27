@@ -10,7 +10,7 @@ const allowedExtensions: string[] = ['png', 'jpg', 'jpeg'];
 @Injectable({
   providedIn: 'root'
 })
-export class ImageService {
+export class ImageValidationService {
 
   constructor() { }
 
@@ -20,14 +20,14 @@ export class ImageService {
 
     if (image.file.size > maxUploadSize) {
       imageError = "Image file is too large (Max 5Mb)";
-    } else if (!this.validExtension(image)) {
+    } else if (!this.validateExtension(image)) {
       imageError = "Only .jpg and .png images are allowed";
     }
 
     return imageError;
   }
 
-  validExtension(image: ImageFileObject): boolean {
+  validateExtension(image: ImageFileObject): boolean {
     let valid: boolean = false;
 
     for (let i = 0; i < allowedExtensions.length; i++) {

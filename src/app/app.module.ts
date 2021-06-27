@@ -11,6 +11,8 @@ import { GooglePlaceModule } from "ngx-google-places-autocomplete";
 import { ReportsComponent } from './modules/report/reports/reports.component';
 import { ImagePickerComponent } from './shared/components/image-picker/image-picker.component';
 import { HttpClientModule } from "@angular/common/http";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AreasDirective } from './shared/Directives/areas.directive';
 
 
 
@@ -21,16 +23,18 @@ import { HttpClientModule } from "@angular/common/http";
     DashboardComponent,
     ReportsComponent,
     ImagePickerComponent,
+    AreasDirective,
   ],
     imports: [
-        BrowserModule,
-        AppRoutingModule,
-        CoreModule,
-        GooglePlaceModule,
-        ReactiveFormsModule,
-        HttpClientModule,
-        FormsModule,
-        RxReactiveFormsModule
+      BrowserModule,
+      CoreModule,
+      GooglePlaceModule,
+      ReactiveFormsModule,
+      HttpClientModule,
+      FormsModule,
+      RxReactiveFormsModule,
+      BrowserAnimationsModule,
+      AppRoutingModule
     ],
   providers: [],
   bootstrap: [AppComponent]

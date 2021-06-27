@@ -1,9 +1,19 @@
-import {Component, ElementRef, EventEmitter, Input, OnInit, Output, Renderer2, OnChanges} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  Renderer2,
+  OnChanges,
+  OnDestroy
+} from '@angular/core';
 import {Options} from 'ngx-google-places-autocomplete/objects/options/options';
 import {Address} from "ngx-google-places-autocomplete/objects/address";
-import { FormBuilder, FormGroup, Validators, FormArray } from "@angular/forms";
+import {FormGroup, Validators, FormArray, Form} from "@angular/forms";
 import {House} from '../../shared/models/house'
-import {ImageService} from "../../shared/services/image.service";
+import {ImageValidationService} from "../../shared/services/image-validation.service";
 import {FileUploadService} from "../../shared/services/file-upload.service";
 import {ImageFileObject} from "../../shared/models/image-file-object";
 
@@ -11,27 +21,39 @@ import {HouseService} from "../../shared/services/house.service";
 import {AreasService} from "../../shared/services/areas.service";
 import {Area} from "../../shared/models/area";
 import {RxFormBuilder} from "@rxweb/reactive-form-validators";
-import {map} from "rxjs/operators";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
+import {fadeInAnimation} from "../../shared/animations";
 
 declare const Choices: any;
 
 @Component({
   selector: 'app-house-information',
   templateUrl: './house-information.component.html',
-  styleUrls: ['./house-information.component.css']
+  styleUrls: ['./house-information.component.css'],
+  // make fade in animation available to this component
+  animations: [fadeInAnimation],
+  // attach the fade in animation to the host (root) element of this component
+  host: { '[@fadeInAnimation]': '' }
 })
-export class HouseInformationComponent implements OnInit {
+export class HouseInformationComponent implements OnInit, OnDestroy {
 
   isNewHouse: boolean = true;
+
+  // house object that can be used throughout component for display purposes if needed
+  currentHouse: House = {} as House;
 
   // // Event emitter for houseSave/Update
   // @Output() houseSaveEvent = new EventEmitter();
 
+  // // holds function that turns off choices event listening
+  choicesUnlisten: any;
+
   // form object
   houseInfoFormGroup: FormGroup;
+  areasToAddToForm: Area[] = [];
 
-  // used for getting areas field values from form
+
+  // variable that can be used to manipulate choices.js object
   choicesObj: typeof Choices;
 
   // holds the url from the server response for picture upload
@@ -57,124 +79,188 @@ export class HouseInformationComponent implements OnInit {
   constructor(private elementRef: ElementRef,
               private renderer: Renderer2,
               private rxFormBuilder: RxFormBuilder,
-              private imageService: ImageService,
+              private imageService: ImageValidationService,
               private fileUploadService: FileUploadService,
               private houseInfoService: HouseService,
               private areasService: AreasService,
-              private route: ActivatedRoute,) {
+              private route: ActivatedRoute,
+              private router: Router) {
     this.houseInfoFormGroup = this.rxFormBuilder.formGroup(House);
+    console.debug("house-information.component constructor called");
   }
 
   ngOnInit(): void {
-    // listener for Choices events
+    console.log("ngOnInit() called");
+
+    // CHOICES.JS SETUP
+    // This app takes advantage of the event emitted by Choices.js when a
+    // new item is added by adding new items to the areas object inside of a house
+    // object. When populating the form after a router event to view a saved
+    // houses information, the area's that are already present should
+    // not be saved again, so by using choicesUnlisten(), which turns off
+    // auto-adding new areas, double saving events can be avoided during
+    // population of the form.... *hopefully*
+    this.turnOnChoicesAddItemEventListening();
+
+    // turn on 'removeItem' listening
     this.renderer.listen(
       document,
-      'addItem',
+      'removeItem',
       (event) => {
-        this.AddAreaToHouse(event.detail.value);
-        console.log(`Choices listener working. Event is: ${event.detail.value}`);
-      });
-
-    // This retrieves whether this component is considered to be for a new House or an existing house
-    console.debug(this.route.snapshot.url[1].path);
-    this.isNewHouse = this.route.snapshot.url[1].path === "createNewHouse";
-    console.debug("isNewHouseValue is: " + this.isNewHouse);
-
-    if(!this.isNewHouse) {
-      // This retrieves the house object in order to auto-populate the fields of the form
-      this.route.paramMap.pipe(map(() => window.history.state))
-        .subscribe(next => {
-          // if there is no state object (fresh/re-load)
-          if(!next.house) {
-            // get the houseId param and make server request to get corresponding house object
-            this.houseInfoService.getHouse(next.navigationId).subscribe({
-              next: value => {
-                console.warn("Newly loaded page's state did not include a House object.");
-                console.debug(`Retried house ${next.navigationId} object from server`);
-                console.log("Server response is: ");
-                console.log(value);
-                this.houseInfoFormGroup.patchValue(value);
-                this.pictureUrl = value.pictureUrl;
-              },
-              error: err => {
-                console.warn("There was an error retrieving the house object from the server. ");
-              }});
-          } else { // else called by router
-            console.log("House object retrieved from state is: ");
-            console.log(next.house);
-
-            this.houseInfoFormGroup.patchValue(next.house);
-            this.pictureUrl = next.house.pictureUrl;
-          }
-        });
-    }
+        console.log(`Choices 'removeItem' listener working. Event is: ${event.detail.value}`);
+        this.removeAreaFromHouse(event.detail.value);
+      }
+    );
 
     // initializes the "Areas" Choices plugin
     if (document.getElementById('areas')) {
+      console.debug("areas element found!")
+
+      console.debug("creating new choices element")
       const areas = document.getElementById('areas');
       this.choicesObj = new Choices(areas, {
         delimiter: ',',
         editItems: true,
         maxItemCount: 10,
         removeItemButton: true,
-        addItems: true
+        addItems: true,
+        duplicateItemsAllowed: false,
+        placeholderValue: "Enter areas of your house here"
       });
     }
 
+    this.route.paramMap.subscribe( {
+      next: params => {
+        if(params.has('houseId')) {
+
+          console.debug("houseId param is " + params.get('houseId'));
+
+          if(params.get('houseId') === "createNewHouse") {
+            console.debug("/createNewHouse path detected");
+            this.isNewHouse = true;
+            this.cleanForm();
+            this.choicesObj.setValue(['Kitchen', 'Living Room', 'Dining Room']);
+
+            console.debug("areasToAddToForm[] is:");
+            console.debug(this.areasToAddToForm);
+
+          } else {
+            this.houseInfoService.getHouse(params.get('houseId')!).subscribe({
+              next: house => {
+                this.isNewHouse = false;
+                this.currentHouse = house;
+                this.cleanForm();
+                this.populateFormData(house);
+              }
+            });
+          }
+        } // end if(params.has('houseId'))
+      } // end next: params =>
+    });
 
   } // end ngOnInit
+
+  cleanForm() {
+
+    console.debug("Clearing form...")
+
+    this.choicesObj.clearStore();
+    this.areasToAddToForm = [];
+    let areasFormArray = <FormArray>this.houseInfoFormGroup.controls.areas;
+    areasFormArray.clear();
+    console.debug("areasFormArray is:");
+    console.debug(areasFormArray.value);
+
+    // this.houseInfoFormGroup.controls.areas.reset();
+    this.houseInfoFormGroup.reset()
+  }
+
+  // handles all things regarding initializing the form
+  populateFormData (house: House) {
+
+    console.debug("Form data is being populated.");
+
+    // Populate form data
+    this.houseInfoFormGroup.patchValue(house);
+
+    // this.pictureUrl is what is passed to the image-picker for display
+    this.pictureUrl = house.pictureUrl;
+
+    // area names to add to form if populating an existing house
+    let areaNames: string[] = [];
+    if(!this.isNewHouse && house) {
+
+      // add the existing areas to the empty areasToAddToFrom
+      house.areas.forEach(area => {this.areasToAddToForm.push(area)});
+
+      // get an array of area names to display to the user
+      areaNames = house.areas.map(area => area.areaName);
+
+      // turn listening off so areas aren't duplicated while populating the areas form field
+      console.debug("Turning Choices.js event listening off.");
+      this.choicesUnlisten();
+
+      console.debug("Setting area values to: "  + areaNames);
+      this.choicesObj.setValue(areaNames);
+
+      // turn listening back on after areas field is populated so that new entries are handled properly
+      console.debug("Turning Choices.js event listening on.");
+
+      this.turnOnChoicesAddItemEventListening();
+    } // end "if(!this.isNewHouse && house) {...."
+  } // end populateFormData()
+
+  turnOnChoicesAddItemEventListening() {
+
+    console.debug("Turning on choices listening")
+
+    this.choicesUnlisten = this.renderer.listen(
+      document,
+      'addItem',
+      (event) => {
+        console.log(`Choices 'addItem' listener working. Event is: ${event.detail.value}`);
+        this.addAreaToHouse(event.detail.value);
+      }
+    );
+  }
 
   // Spring doesn't want to accept an Area[] that has a mix of area
   // objects that do and do not have areaIds. If the user is trying to create
   // a new house, then the areas will be new as well, and none of them will
-  // have areaIds. In this instance, this will call addAreaToUnsavedHouse()
-  // which will create a FormArray of area objects, all w/o areaIds.
-  // If the user is trying to update a house _and add a new area_, then this
-  // will call addAreaToSavedHouse() which will save the area to server first,
-  // and then add the area w/ areaId to the FormArray of area objects.
-  AddAreaToHouse(areaName: string) {
-
-    if (this.isNewHouse) {
-      this.addAreaToUnsavedHouse(areaName);
-    } else {
-      this.addAreaToSavedHouse(areaName);
-    }
-
-  }
-
-  // saves area to form group as user enters it
-  addAreaToUnsavedHouse(areaName: string) {
-    console.debug("addAreaToUnsavedHouse() called");
-
-    // holds area objects when user enters them
-    let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
-
-    // package area name in area object to add to formGroup
-    const areaToSave: Area = {areaName: areaName};
-
-    areas.push(this.rxFormBuilder.formGroup(Area, areaToSave))
-
-  }
-
-  // saves area to server as user enters it, and then saves result to formGroup
-  addAreaToSavedHouse(areaName: string) {
-    console.debug("addAreaToSavedHouse() called");
-
-    // holds area objects when user enters them
-    let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
+  // have areaIds.
+  // If the user is trying to update a house *and add a new area*, then this
+  // will save the area to server first, and then add the area w/ areaId
+  // to the FormArray of area objects.
+  addAreaToHouse(areaName: string) {
 
     // package area name in area object to send to back end
     const areaToSave: Area = {areaName: areaName};
-    this.areasService.saveAreaToServer(areaToSave).subscribe({
-      next: response => {
-        areaToSave.areaId = response.areaId;
-        areas.push(this.rxFormBuilder.formGroup(Area, areaToSave));
-      },
-      error: err => {
-        console.error("There was an error saving the house to the server. Error: " + err.message)
-      }}
-    )
-  }
+
+    if (this.isNewHouse) {
+      console.debug("adding area to unsaved house");
+      this.areasToAddToForm.push(areaToSave);
+    } else {
+      console.debug("adding area to saved house");
+      this.areasService.saveAreaToServer(areaToSave).subscribe({
+        next: response => {
+          areaToSave.areaId = response.areaId;
+          this.areasToAddToForm.push(areaToSave);
+        },
+        error: err => {
+          console.error("There was an error saving the house to the server. Error: " + err.message)
+        }}
+      )
+    } // end if/else conditional
+  } // end addAreaToHouse()
+
+  public removeAreaFromHouse(areaName: string) {
+    console.debug(`Removing ${areaName} from areasToAddToForm[]`);
+    this.areasToAddToForm = this.areasToAddToForm.filter( (area) => {
+      return area.areaName != areaName;
+    })
+    console.debug("areasToAddToForm[] is: ");
+    console.debug(this.areasToAddToForm);
+  } // end removeAreaFromHouse();
 
   // auto-populates address fields from Google Maps Places API
   public handleAddressChange(address: Address) {
@@ -213,7 +299,7 @@ export class HouseInformationComponent implements OnInit {
 
 
   onSubmit(): void {
-    console.debug('populating a new house object');
+    console.debug('Attempting to populate a new house object');
 
     // if there are invalid values in the fields, mark all the fields as touched
     // (will show alerts for all invalid fields) and then exit the function
@@ -227,52 +313,97 @@ export class HouseInformationComponent implements OnInit {
 
     // fill in remaining house object properties
     this.houseInfoFormGroup.controls.pictureUrl.setValue(this.pictureUrl);
+    let areas = <FormArray>this.houseInfoFormGroup.controls.areas;
+    this.areasToAddToForm.forEach(area => areas.push(this.rxFormBuilder.formGroup(Area, area)));
 
-    // TODO: Delete this
-    // don't think I need this.... but leaving it here for now.
-    // const areas: string = this.choicesObj.getValue(true); // ignore the red squiggly... this works
-
-
-    console.debug("new house object is:");
+    console.debug("House object being uploaded from form is:");
     console.debug(this.houseInfoFormGroup.value);
 
-    this.houseInfoService.saveNewHouse(this.houseInfoFormGroup.value).subscribe({
-        next: response => {
-          console.info(`house ${response.houseName} was saved successfully.`);
-        },
-        error: err => {
-          alert("There was an error in attempting to save the new house: " + err.message + " status is : " + err.status);
+    if(this.isNewHouse) {
+      this.houseInfoService.saveNewHouse(this.houseInfoFormGroup.value).subscribe({
+          next: response => {
+            console.info(`house ${response.houseName} was saved successfully.`);
+            let redirectUrl: string = `/houses/${response.houseId}`;
+            this.router.navigate([redirectUrl]);
+          },
+          error: err => {
+            alert("There was an error in attempting to save the new house: " + err.message + " status is : " + err.status);
+          }
         }
-      },
-    )
+      );
+    } else {
+      this.houseInfoService.updateHouse(this.houseInfoFormGroup.value).subscribe({
+          next: response => {
+            this.currentHouse = this.houseInfoFormGroup.value;
+            console.info(`house ${response.houseName} was updated successfully.`);
 
+            // The areas part of the form was exhibiting some weird behavior after an update
+            // I think this was b/c there was no change in url and therefore the form wasn't getting reset properly
+            // this is to imitate a redirect
+            this.cleanForm();
+            this.populateFormData(this.currentHouse);
+
+            // let redirectUrl: string = `/houses/${response.houseId}`;
+            // this.router.navigate([redirectUrl]);
+          },
+          error: err => {
+            alert("There was an error in attempting to update the house: " + err.message + " status is : " + err.status);
+          }
+        },
+      );
+    } // end if/else conditional
 
   } // end onSubmit()
 
   // IMAGE UPLOAD METHODS
 
   // executed when user chooses a new photo
-  onUploadedImage(image: ImageFileObject) {
-    // validate image
-    this.imageError = this.imageService.validateImage(image);
-    // if image object is valid, assign it to local imageUploadObj
-    if (!this.imageError) {
-      this.imageUploadObj = image;
+  // imageFileObject is emitted from image-picker.component
+  onUploadedImage(imageFileObject: ImageFileObject) {
+
+    console.debug("onUploadImage() called");
+
+    // if the image picker doesn't send an empty object, then process it
+    if (imageFileObject) {
+
+      console.debug("imageFileObject not empty.");
+      console.debug("Running image validation...");
+      // validate image
+      this.imageError = this.imageService.validateImage(imageFileObject);
+      // if image object is valid, assign it to local imageUploadObj
+      if (!this.imageError) {
+        this.imageUploadObj = imageFileObject;
+
+        // upload the file to server
+        this.fileUploadService.pushFileToStorage(this.imageUploadObj.file, this.profileImageUploadUrl)
+          .subscribe({
+            next: next => {
+              console.log("image successfully uploaded")
+              this.pictureUrl = next.fileDownloadUri;
+              this.imageUploadObj = {} as ImageFileObject;
+            },
+            error: err => {
+              this.handleError(err)
+            }
+          });
+      } // end "if (!this.imageError) {..."
+    } else {
+
+      console.debug("imageFileObject empty.");
+      console.debug("Using placeholder URL for upload.")
+
+      // TODO: this value is duplicated in image-picker.component.ts -- find a way to only have one source
+      this.pictureUrl = "";
     }
 
-    // upload the file to server
-    this.fileUploadService.pushFileToStorage(this.imageUploadObj.file, this.profileImageUploadUrl)
-      .subscribe(next => {
-          console.log("image successfully uploaded")
-          this.pictureUrl = next.fileDownloadUri;
-          this.imageUploadObj = {} as ImageFileObject;
-        },
-        err => this.handleError(err));
-  }
+  } // end onUploadImage()
 
   handleError(err: Error) {
     console.error("Error is", err);
     this.imageError = err.message;
+  }
+
+  ngOnDestroy() {
   }
 
 } // end class

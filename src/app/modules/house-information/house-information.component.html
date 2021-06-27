@@ -1,11 +1,19 @@
 <div class="container-fluid py-4">
+  <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit()">
   <div class="row">
-    <div class="col-lg-6">
-      <h4>Create a new house</h4>
+    <div class="col-lg-6" *ngIf="isNewHouse">
+      <h4>Create A New House</h4>
       <p>Fill out the fields below to add a new house to your account.</p>
     </div>
+    <div class="col-lg-6" *ngIf="!isNewHouse">
+      <h4>{{ currentHouse.houseName }}</h4>
+      <p>Update the information for this house below.</p>
+    </div>
+    <div *ngIf="!isNewHouse" class="col-lg-6 text-right d-flex flex-column justify-content-center">
+      <button type="submit" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-0 mt-2">Update</button>
+    </div>
   </div>
-  <form [formGroup]="houseInfoFormGroup" (ngSubmit)="onSubmit()">
+
     <div class="row mt-4">
       <div class="col-lg-4">
         <app-image-picker (uploadedImageEvent)="onUploadedImage($event)" [image]="pictureUrl"></app-image-picker>
@@ -95,16 +103,15 @@
             <!-- Areas -->
             <div class="row">
               <div class="col">
-                <label class="form-label mt-4" for="areas">House Areas</label>
-                <input class="form-control" id="areas" type="text"
-                       placeholder="Enter the different areas of your house here."/>
+                <label class="form-label mt-4">House Areas</label>
+                <input class="form-control" id="areas" type="text"/>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" *ngIf="isNewHouse">
       <div class="col text-right d-flex flex-column justify-content-center">
         <button type="submit" class="btn bg-gradient-primary mb-0 ms-lg-auto me-lg-0 me-auto mt-lg-2 mt-2">Save</button>
       </div>

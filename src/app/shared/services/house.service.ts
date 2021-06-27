@@ -16,6 +16,10 @@ export class HouseService {
     return this.httpClient.post<House>(this.housesUrl, house);
   }
 
+  updateHouse(house: House): Observable<any> {
+    return this.httpClient.put<House>(this.housesUrl, house);
+  }
+
   getAllHouses(): Observable<any> {
     return this.httpClient.get<House>(this.housesUrl);
   }

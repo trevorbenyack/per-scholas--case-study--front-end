@@ -6,7 +6,7 @@ import {HouseInformationComponent} from "./modules/house-information/house-infor
 
 const routes: Routes = [
   {path: 'dashboard', component: DashboardComponent},
-  {path: 'houses/createNewHouse', component: HouseInformationComponent},
+  // {path: 'houses/createNewHouse', component: HouseInformationComponent},
   {path: 'houses/:houseId', component: HouseInformationComponent},
   {path: 'reports', component: ReportsComponent}
 ];
