@@ -34,7 +34,8 @@
               "src/assets/css/nucleo-icons.css",
               "src/assets/css/nucleo-svg.css",
               "src/assets/css/nucleo-svg.css",
-              "src/assets/css/soft-ui-dashboard.css"
+              "src/assets/css/soft-ui-dashboard.css",
+              "node_modules/animate.css/animate.min.css"
             ],
             "scripts": [
               "src/assets/js/core/bootstrap.min.js",
@@ -44,7 +45,9 @@
               "src/assets/js/plugins/smooth-scrollbar.min.js",
               "src/assets/js/plugins/choices.min.js",
               "src/assets/js/plugins/quill.min.js",
-              "src/assets/js/plugins/jkanban/jkanban.js"
+              "src/assets/js/plugins/jkanban/jkanban.js",
+              "src/assets/js/plugins/sweetalert.min.js",
+              "node_modules/bootstrap-notify/bootstrap-notify.js"
             ]
           },
           "configurations": {

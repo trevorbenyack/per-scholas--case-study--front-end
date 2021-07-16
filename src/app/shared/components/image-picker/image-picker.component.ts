@@ -19,7 +19,7 @@ export class ImagePickerComponent implements OnInit {
   // emits image object to parent component
   @Output() uploadedImageEvent = new EventEmitter<ImageFileObject>();
 
-  constructor(private imageService: ImageValidationService,
+  constructor(private imageValidationService: ImageValidationService,
               private elementRef: ElementRef,
               private renderer: Renderer2) { }
 
@@ -82,7 +82,7 @@ export class ImagePickerComponent implements OnInit {
       // gets the image path for use in the img tag
       // if the image doesn't have a valid extension, it
       // still emits the file, but removes the thumbnail
-      if (this.imageService.validateExtension(imageFileObject)) {
+      if (this.imageValidationService.validateExtension(imageFileObject)) {
         reader.readAsDataURL(file);
       } else {
         this.removeImage()

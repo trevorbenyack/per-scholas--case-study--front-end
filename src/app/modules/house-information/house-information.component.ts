@@ -23,7 +23,9 @@ import {Area} from "../../shared/models/area";
 import {RxFormBuilder} from "@rxweb/reactive-form-validators";
 import {ActivatedRoute, Router} from "@angular/router";
 import {fadeInAnimation} from "../../shared/animations";
+import 'bootstrap-notify'
 
+import * as $ from "jquery";
 declare const Choices: any;
 
 @Component({
@@ -87,6 +89,33 @@ export class HouseInformationComponent implements OnInit, OnDestroy {
               private router: Router) {
     this.houseInfoFormGroup = this.rxFormBuilder.formGroup(House);
     console.debug("house-information.component constructor called");
+  }
+
+  displaySuccessAlert(houseName: string) {
+
+    const uploadMethod: string = this.isNewHouse ? 'saved' : 'updated';
+
+    $.notify({
+      // options
+      message: 'House saved successfully!'
+    },{
+      // settings
+      type: 'success',
+      placement: {
+        align: 'center'
+      },
+      animate: {
+        enter: 'animated fadeInDown',
+        exit: 'animated fadeOutUp'
+      },
+      delay: 1,
+      template:
+        '<div class="col-xs-11 col-sm-5 alert alert-success alert-dismissible fade show" style="text-align: center" role="alert">' +
+        '        <span class="alert-icon" style="color: white"><i class="ni ni-like-2"></i></span>' +
+        `        <span class="alert-text" style="color: white"><strong>Success! </strong> ${houseName} has been ${uploadMethod}!</span>` +
+        '        </button>' +
+        '    </div>'
+    });
   }
 
   ngOnInit(): void {
@@ -297,7 +326,6 @@ export class HouseInformationComponent implements OnInit, OnDestroy {
 
   } // end handleAddressChange()
 
-
   onSubmit(): void {
     console.debug('Attempting to populate a new house object');
 
@@ -323,8 +351,13 @@ export class HouseInformationComponent implements OnInit, OnDestroy {
       this.houseInfoService.saveNewHouse(this.houseInfoFormGroup.value).subscribe({
           next: response => {
             console.info(`house ${response.houseName} was saved successfully.`);
+
+            // update sidebar to reflect new added house
+            this.houseInfoService.updateUserHouses();
+
             let redirectUrl: string = `/houses/${response.houseId}`;
             this.router.navigate([redirectUrl]);
+            this.displaySuccessAlert(response.houseName);
           },
           error: err => {
             alert("There was an error in attempting to save the new house: " + err.message + " status is : " + err.status);
@@ -345,6 +378,10 @@ export class HouseInformationComponent implements OnInit, OnDestroy {
 
             // let redirectUrl: string = `/houses/${response.houseId}`;
             // this.router.navigate([redirectUrl]);
+
+            // update sidebar to reflect new added house
+            this.houseInfoService.updateUserHouses();
+            this.displaySuccessAlert(response.houseName);
           },
           error: err => {
             alert("There was an error in attempting to update the house: " + err.message + " status is : " + err.status);

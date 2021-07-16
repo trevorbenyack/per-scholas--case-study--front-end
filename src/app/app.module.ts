@@ -14,8 +14,6 @@ import { HttpClientModule } from "@angular/common/http";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AreasDirective } from './shared/Directives/areas.directive';
 
-
-
 @NgModule({
   declarations: [
     AppComponent,

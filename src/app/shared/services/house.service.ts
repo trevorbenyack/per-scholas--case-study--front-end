@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {House} from "../models/house";
-import {Observable} from "rxjs";
+import {Observable, Subject} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -10,9 +10,14 @@ export class HouseService {
 
   housesUrl: string = "http://localhost:8080/api/houses/"
 
+  // Observable string sources
+  private userHousesSource = new Subject<House[]>();
+  userHouses$ = this.userHousesSource.asObservable();
+
   constructor(private httpClient: HttpClient) { }
 
   saveNewHouse(house: House): Observable<any> {
+    // this.httpClient.get<House>(this.housesUrl, );
     return this.httpClient.post<House>(this.housesUrl, house);
   }
 
@@ -21,7 +26,18 @@ export class HouseService {
   }
 
   getAllHouses(): Observable<any> {
-    return this.httpClient.get<House>(this.housesUrl);
+    return this.httpClient.get<House[]>(this.housesUrl);
+  }
+
+  updateUserHouses() {
+    this.getAllHouses().subscribe( {
+      next: houses => {
+        this.userHousesSource.next(houses);
+      },
+      error: err => {
+        console.error("There was an error retrieving the user's houses.")
+      }
+    })
   }
 
   getHouse(houseId: string): Observable<any> {
